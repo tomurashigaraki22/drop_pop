@@ -1,21 +1,67 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+const BASE_URL = 'http://13.60.101.169:1245';
 
 function DeleteAccount() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
-    // Here you would typically make an API call to verify credentials and delete the account
-    // This is just a mock implementation
-    if (email && password) {
+    setLoading(true);
+
+    try {
+      // First, verify credentials
+      const loginFormData = new FormData();
+      loginFormData.append("email", email);
+      loginFormData.append("password", password);
+
+      const loginResponse = await fetch(`${BASE_URL}/login`, {
+        method: 'POST',
+        body: loginFormData
+      });
+
+      if (!loginResponse.ok) {
+        throw new Error('Invalid credentials');
+      }
+
+      const loginData = await loginResponse.json();
+      
+      if (loginData.status !== 200) {
+        throw new Error(loginData.message || 'Login failed');
+      }
+
+      // If login successful, proceed with account deletion
+      const deleteResponse = await fetch(`${BASE_URL}/deleteUser`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email })
+      });
+
+      if (!deleteResponse.ok) {
+        throw new Error('Failed to delete account');
+      }
+
+      const deleteData = await deleteResponse.json();
       setSuccess(true);
-    } else {
-      setError('Please fill in all fields');
+      
+      // Redirect to home page after 3 seconds
+      setTimeout(() => {
+        navigate('/');
+      }, 3000);
+
+    } catch (error) {
+      setError(error.message || 'An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -25,8 +71,8 @@ function DeleteAccount() {
         <div className="form-container">
           <h2>Account Deletion Request Received</h2>
           <p className="success-message">
-            We have received your account deletion request. You will receive a confirmation email shortly.
-            Your account will be permanently deleted within 30 days.
+            We have received your account deletion request. Your account has been successfully deleted.
+            You will be redirected to the home page in a few seconds.
           </p>
         </div>
       </div>
@@ -53,6 +99,7 @@ function DeleteAccount() {
               className="form-input"
               placeholder="Enter your email"
               required
+              disabled={loading}
             />
           </div>
           
@@ -66,6 +113,7 @@ function DeleteAccount() {
               className="form-input"
               placeholder="Enter your password"
               required
+              disabled={loading}
             />
           </div>
 
@@ -73,8 +121,12 @@ function DeleteAccount() {
             <p className="form-error">{error}</p>
           )}
 
-          <button type="submit" className="delete-button">
-            Delete My Account
+          <button 
+            type="submit" 
+            className="delete-button"
+            disabled={loading}
+          >
+            {loading ? 'Processing...' : 'Delete My Account'}
           </button>
         </form>
       </div>
