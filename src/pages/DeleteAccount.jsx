@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const BASE_URL = 'http://13.60.101.169:1245';
+const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
+const API_URL = 'http://13.60.101.169:1245';
+const BASE_URL = `${CORS_PROXY}${API_URL}`;
 
 function DeleteAccount() {
   const [email, setEmail] = useState('');
@@ -24,11 +26,16 @@ function DeleteAccount() {
 
       const loginResponse = await fetch(`${BASE_URL}/login`, {
         method: 'POST',
-        body: loginFormData
+        body: loginFormData,
+        headers: {
+          'Accept': 'application/json',
+          'Origin': window.location.origin,
+        },
       });
 
       if (!loginResponse.ok) {
-        throw new Error('Invalid credentials');
+        const errorData = await loginResponse.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Invalid credentials');
       }
 
       const loginData = await loginResponse.json();
@@ -42,12 +49,15 @@ function DeleteAccount() {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Origin': window.location.origin,
         },
         body: JSON.stringify({ email })
       });
 
       if (!deleteResponse.ok) {
-        throw new Error('Failed to delete account');
+        const errorData = await deleteResponse.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to delete account');
       }
 
       const deleteData = await deleteResponse.json();
@@ -59,6 +69,7 @@ function DeleteAccount() {
       }, 3000);
 
     } catch (error) {
+      console.error('Error:', error);
       setError(error.message || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
