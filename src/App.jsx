@@ -14,7 +14,7 @@ function App() {
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/delete-account" element={<DeleteAccount />} />
           <Route path="/" element={<PrivacyPolicy />} />
-          <Route path="*" element={<TermsOfService />} />
+          <Route path="*" element={<DeleteAccount />} />
         </Routes>
       </div>
     </Router>
