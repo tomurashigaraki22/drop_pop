@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
 const API_URL = 'http://13.60.101.169:1245';
-const BASE_URL = `${CORS_PROXY}${API_URL}`;
+const BASE_URL = `https://dropserver.shop`;
 
 function DeleteAccount() {
   const [email, setEmail] = useState('');
